@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<nav class="navbar navbar-expand-lg navbar-light" style="background-color: #005555;">
+    <div class="container-fluid">
+        <!-- Left: Welcome message -->
+        <span class="navbar-text text-white " style="font-size: 20px;">
+            Welcome, {{ user.username }}
+        </span>
+
+        <!-- Center: Tenant Dashboard -->
+        <div class="mx-auto">
+            <a class="navbar-brand text-white text-center" style="margin: 0 auto; ">Tenant Dashboard</a>
+        </div>
+
+        <!-- Right: Logout button -->
+        <div class="d-flex ms-auto">
+            <a class="logout-btn text-white btn-sm" href="{% url 'logout' %}" style="font-size: 20px;">
+                <i class="fas fa-sign-out-alt" style="font-size: 20px;"></i> Logout
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- Filter Form -->
+<form method="GET" class="mb-4">
+    <div class="row align-items-end" style="margin-left: 10%">
+        <div class="col-md-2">
+            <input type="text" name="title" class="form-control" placeholder="Property Title" value="{{ request.GET.title }}">
+        </div>
+        <div class="col-md-2">
+            <input type="number" name="min_price" class="form-control" placeholder="Min Price" value="{{ request.GET.min_price }}">
+        </div>
+        <div class="col-md-2">
+            <input type="number" name="max_price" class="form-control" placeholder="Max Price" value="{{ request.GET.max_price }}">
+        </div>
+        <div class="col-md-2">
+            <select name="status" class="form-control">
+                <option value="" {% if request.GET.status == "" %}selected{% endif %}>All Statuses</option>
+                <option value="vacant" {% if request.GET.status == "vacant" %}selected{% endif %}>Vacant</option>
+                <option value="rented" {% if request.GET.status == "rented" %}selected{% endif %}>Rented</option>
+                <option value="sold" {% if request.GET.status == "sold" %}selected{% endif %}>Sold</option>
+            </select>
+        </div>
+        <div class="col-md-4 mt-3">
+            <button type="submit" class="btn btn-primary me-2">Filter</button>
+            <a href="{% url 'tenant_dashboard' %}" class="btn btn-secondary">Reset Filters</a>
+        </div>
+    </div>
+</form>
+
+
+{% comment %} <div class="container mt-5">
+    <div class="row">
+        {% for property in properties %}
+        <div class="col-md-4">
+            <div class="card mb-4 shadow-lg">
+                <img src="{{ property.image.url }}" class="card-img-top" alt="Property Image" style="height: 200px; object-fit: cover;">
+                <div class="card-body">
+                    <h5 class="card-title">{{ property.title }}</h5>
+                    <p class="card-text">
+                        <span class="badge {% if property.status == 'available' %}bg-success{% else %}bg-secondary{% endif %}">
+                            {{ property.status|capfirst }}
+                        </span>
+                    </p>
+                    <p class="card-text">{{ property.description|truncatewords:20 }}</p>
+                    <p class="card-text"><strong>Price:</strong> ${{ property.price }}</p>
+                    <a href="{% url 'detail-view' property.pk %}" class="btn btn-primary">View Details</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p>No properties found.</p>
+        {% endfor %}
+    </div>
+</div> {% endcomment %}
+
+
+<div class="container mt-5">
+    <div class="row mx-auto" style="max-width: 95%;">
+        {% for property in properties %}
+            <div class="col-md-4">
+                <div class="card mb-4 bg-light shadow-lg">
+                    {% if property.images.all %}
+                        <img src="{{ property.images.first.image.url }}" alt="{{ property.title }}" class="img-thumbnail" style="height: 200px; object-fit: cover;">
+                    {% else %}
+                        <span class="text-muted">No Image</span>
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ property.title }}</h5>
+                        <p class="card-text">
+                            <span class="badge {% if property.status == 'available' %}bg-success{% else %}bg-secondary{% endif %}">
+                                {{ property.status|capfirst }}
+                            </span>
+                        </p>
+                        <p class="card-text">{{ property.description|truncatewords:20 }}</p>
+                        <p class="card-text" style="color: black; font-size: 18px;"><strong>Price:</strong> ${{ property.price }}</p>
+                        
+                        <a href="{% url 'view_detail' property.pk %}" class="btn btn-primary">View Details</a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <p>No properties found.</p>
+        {% endfor %}
+    </div>
+</div>
+
+  
+
+
+
+
+<!-- Pagination controls -->
+<div class="d-flex justify-content-center mt-4">
+    <nav aria-label="Page navigation">
+        <ul class="pagination">
+            {% if properties.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1&title={{ request.GET.title }}&min_price={{ request.GET.min_price }}&max_price={{ request.GET.max_price }}&status={{ request.GET.status }}" aria-label="First">
+                    <span aria-hidden="true">&laquo;&laquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ properties.previous_page_number }}&title={{ request.GET.title }}&min_price={{ request.GET.min_price }}&max_price={{ request.GET.max_price }}&status={{ request.GET.status }}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            {% endif %}
+
+            <li class="page-item disabled">
+                <a class="page-link" href="#">{{ properties.number }}</a>
+            </li>
+
+            {% if properties.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ properties.next_page_number }}&title={{ request.GET.title }}&min_price={{ request.GET.min_price }}&max_price={{ request.GET.max_price }}&status={{ request.GET.status }}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ properties.paginator.num_pages }}&title={{ request.GET.title }}&min_price={{ request.GET.min_price }}&max_price={{ request.GET.max_price }}&status={{ request.GET.status }}" aria-label="Last">
+                    <span aria-hidden="true">&raquo;&raquo;</span>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+
+{% endblock %}

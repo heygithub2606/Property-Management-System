@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <a href="{% url 'property-list' %}" class="btn btn-primary mt-3" >
+        <i class="fa fa-arrow-left"></i> Back
+    </a>
+    <h2 class="text-center mb-4">Edit Property</h2>
+
+    <div class="card shadow-lg">
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data" id='propertyForm'>
+                {% csrf_token %}
+
+                <!-- Title Input -->
+                <div class="form-group mb-3">
+                    <label for="title" class="form-label">Title:</label>
+                    <input type="text" name="title" class="form-control" id="title" value="{{ form.title }}" required>
+                    <div class="invalid-feedback" id="title-error-message">Title must be under 35 characters.</div>
+                </div>
+
+                <!-- Description Input -->
+                <div class="form-group mb-3">
+                    <label for="description" class="form-label">Description:</label>
+                    <textarea name="description" class="form-control" id="description" required>{{ form.description }}</textarea>
+                    <div id="description-error-message" class="invalid-feedback"></div>
+                </div>
+
+                <!-- Price Input -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="price" class="form-label">Price:</label>
+                        <input type="number" name="price" class="form-control" id="price" value="{{ form.price }}" required>
+                        <div id="price-error-message" class="invalid-feedback"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="phone_no">Phone Number:</label>
+                        <input type="text" name="phone_no" class="form-control" id="phone_no" value="{{ form.phone_no }}" required>
+                        <div class="invalid-feedback" id="phone-error-message">Phone number must be exactly 10 digits.</div>
+                    </div>
+                </div>
+
+
+                <!-- Email Input -->
+              
+                <div class="col-md-12 mb-3">
+                    <label for="landlord_email">Email:</label>
+                    <input type="text" name="landlord_email" class="form-control" id="landlord_email" value="{{ form.landlord_email }}" required>
+                    <div class="invalid-feedback" id="email-error-message" style="display: none;">Please enter a valid email address.</div>
+                </div>
+      
+           <!-- City Field -->
+           <div class="form-group mb-3">
+            <label for="city">City:</label>
+            <select name="city" class="form-control" id="city" required>
+                <option value="" disabled {% if not form.city %}selected{% endif %}>Select a city</option>
+                {% for city in cities %}
+                    <option value="{{ city }}" {% if form.city == city %}selected{% endif %}>{{ city }}</option>
+                {% endfor %}
+            </select>
+        </div> 
+            
+
+                <!-- Property Type and Status Inputs in a Row -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="property_type" class="form-label">Property Type:</label>
+                            <select name="property_type" class="form-control" id="property_type" required>
+                                <option value="apartment" {% if form.property_type == 'apartment' %}selected{% endif %}>Apartment</option>
+                                <option value="house" {% if form.property_type == 'house' %}selected{% endif %}>House</option>
+                                <option value="office" {% if form.property_type == 'office' %}selected{% endif %}>Office</option>
+                            </select>
+                            <div id="property-type-error-message" class="invalid-feedback"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="status" class="form-label">Status:</label>
+                            <select name="status" class="form-control" id="status" required>
+                                <option value="Sell" {% if form.status == 'Sell' %}selected{% endif %}>Sell</option>
+                                <option value="Rent" {% if form.status == 'Rent' %}selected{% endif %}>Rent</option>
+                            </select>
+                            <div id="status-error-message" class="invalid-feedback"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Display the Current Image -->
+                {% if property_images %}
+                <div class="form-group mb-3 text-center">
+                    <label>Current Images:</label>
+                    <div>
+                        {% for image in property_images %}
+                            <img src="{{ image.image.url }}" alt="Property Image" class="img-fluid rounded" style="max-width: 200px; margin: 5px;">
+                        {% empty %}
+                            <p>No images available.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Image Upload -->
+                <div class="form-group mb-3">
+                    <label for="image" class="form-label">Upload New Image:</label>
+                    <input type="file" name="image" class="form-control" id="image" multiple>
+                    <div id="image-error-message" class="invalid-feedback"></div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary btn-block mt-4">Update Property</button>
+                </div>
+            </form>
+
+            <!-- Display Success Messages -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} mt-3">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Display Non-field Errors -->
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger mt-3">
+                    {% for error in form.non_field_errors %}
+                        <div>{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const propertyForm = document.getElementById('propertyForm');
+
+        propertyForm.onsubmit = function(e) {
+            let isValid = true;
+
+            // Title validation
+            const titleField = document.getElementById('title');
+            const title = titleField.value.trim();
+            const titleError = document.getElementById('title-error-message');
+            
+            titleError.style.display = 'none';  // Initially hide the error
+            titleField.classList.remove('is-invalid', 'is-valid');  // Reset classes
+
+            // Check if title length exceeds 35 characters
+            if (title.length > 35) {
+                titleField.classList.add('is-invalid');
+                titleError.textContent = "Title must be under 35 characters.";  
+                titleError.style.display = 'block';
+                isValid = false;
+            } else {
+                titleField.classList.add('is-valid');
+            }
+
+            // Phone number validation
+            const phoneField = document.getElementById('phone_no');
+            const phone = phoneField.value.trim();
+            const phoneError = document.getElementById('phone-error-message');
+
+            phoneError.style.display = 'none';  
+            phoneField.classList.remove('is-invalid', 'is-valid');  
+            
+            if (!/^\d{10}$/.test(phone)) {
+                phoneField.classList.add('is-invalid');
+                phoneError.style.display = 'block';
+                isValid = false;
+            } else {
+                phoneField.classList.add('is-valid');
+            }
+
+            // Latitude validation
+            const latitudeField = document.getElementById('location_latitude');
+            const latitude = parseFloat(latitudeField.value);
+            const latitudeError = document.getElementById('latitude-error-message');
+
+            latitudeError.style.display = 'none';  
+            latitudeField.classList.remove('is-invalid', 'is-valid');  
+            
+            if (isNaN(latitude) || latitude < -90 || latitude > 90) {
+                latitudeField.classList.add('is-invalid');
+                latitudeError.style.display = 'block';
+                isValid = false;
+            } else {
+                latitudeField.classList.add('is-valid');
+            }
+
+            // Longitude validation
+            const longitudeField = document.getElementById('location_longitude');
+            const longitude = parseFloat(longitudeField.value);
+            const longitudeError = document.getElementById('longitude-error-message');
+
+            longitudeError.style.display = 'none';  
+            longitudeField.classList.remove('is-invalid', 'is-valid');  
+            
+            if (isNaN(longitude) || longitude < -180 || longitude > 180) {
+                longitudeField.classList.add('is-invalid');
+                longitudeError.style.display = 'block';
+                isValid = false;
+            } else {
+                longitudeField.classList.add('is-valid');
+            }
+
+            // Email validation
+            const emailField = document.getElementById('landlord_email');
+            const email = emailField.value.trim();
+            const emailError = document.getElementById('email-error-message');
+
+            emailError.style.display = 'none';  
+            emailField.classList.remove('is-invalid', 'is-valid');  
+            
+            if (!/\S+@\S+\.\S+/.test(email)) {
+                emailField.classList.add('is-invalid');
+                emailError.style.display = 'block';
+                isValid = false;
+            } else {
+                emailField.classList.add('is-valid');
+            }
+
+            // Prevent form submission if invalid
+            if (!isValid) {
+                e.preventDefault();
+            }
+        };
+
+        // Clear error messages on input
+        const inputs = document.querySelectorAll('input, textarea, select');
+        inputs.forEach(input => {
+            input.addEventListener('input', function() {
+                const errorMessageId = `${input.id}-error-message`;
+                const errorMessage = document.getElementById(errorMessageId);
+                
+                if (errorMessage) {
+                    errorMessage.style.display = 'none';  // Hide error message on input
+                    input.classList.remove('is-invalid');
+                }
+            });
+        });
+    });
+</script>
+
+
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <a href="{% url 'tenant_dashboard' %}" class="btn btn-primary"><i class="fas fa-arrow-left"></i> Back </a>
+    
+    <h2 class="mt-4">Contact Landlord for {{ property.title }}</h2>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="mb-3">
+            <div class="mb-3">
+                {{ form.landlord_email.label_tag }}
+                {{ form.landlord_email }}
+            </div>
+            {{ form.tenant_email.label_tag }}
+            {{ form.tenant_email }}
+        </div>
+        <div class="mb-3">
+            {{ form.message.label_tag }}
+            {{ form.message }}
+        </div>
+        <button type="submit" class="btn btn-success">Send Message</button>
+    </form>
+</div>
+{% endblock %}

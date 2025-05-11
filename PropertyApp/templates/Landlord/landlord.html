@@ -1,0 +1,374 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="container-fluid">
+    <div class="row vh-100">
+        <!-- Sidebar -->
+        <nav class="col-md-3 col-lg-2 sidebar text-white" style="background-color: #005555;">
+            <div class="sidebar-sticky">
+                <h5 class="sidebar-header text-white">Welcome, {{ user.username }}!</h5>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active text-white" href="{% url 'profile' %}" style="font-size: 1.1rem;">
+                            <i class="fas fa-user"></i> Profile
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'property-create' %}" style="font-size: 1.1rem;">
+                            <i class="fas fa-plus"></i> Create Property
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{% url 'property-list' %}" style="font-size: 1.1rem;">
+                            <i class="fas fa-home"></i> Manage Properties
+                        </a>
+                    </li>
+                    <li class="mb-3 mt-4">
+                        <a class="logout-btn btn-sm" href="#" data-toggle="modal" data-target="#logoutModal">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        
+        
+        <!-- Logout Confirmation Modal -->
+        <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="logoutModalLabel">Confirm Logout</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span>&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to log out?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <a href="{% url 'logout' %}" class="btn btn-danger">Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Include Bootstrap JS -->
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+        
+
+        <!-- Main Content -->
+        <main role="main" class="col-md-9 ms-sm-auto col-lg-10 px-4 mx-auto">
+            <h2 class="my-4 text-center">Your Dashboard</h2>
+            <marquee style="font-size: 1.5rem; font-weight: bold;color: #005555;">
+                Effortlessly manage your properties with our user-friendly dashboard. Join us today and experience hassle-free property management!
+            </marquee>
+        
+            <div class="row mt-5 justify-content-center" style="color: #005555;">
+                <div class="col-md-3 d-flex justify-content-center">
+                    <div class="card shadow-lg w-100" style="background-color: #005555; color: white;">
+                        <div class="card-body text-center">
+                            <h5 class="card-title text-white">
+                                <i class="fas fa-th-large" aria-hidden="true"></i> Total Properties
+                            </h5>
+                            <p class="card-text">{{ total_properties }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 d-flex justify-content-center">
+                    <div class="card shadow-lg w-100" style="background-color: #005555; color: white;">
+                        <div class="card-body text-center">
+                            <h5 class="card-title text-white">
+                                <i class="fas fa-dollar-sign" aria-hidden="true"></i> Properties for Rent
+                            </h5>
+                            <p class="card-text">{{ properties_for_rent }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 d-flex justify-content-center">
+                    <div class="card shadow-lg w-100" style="background-color: #005555; color: white;">
+                        <div class="card-body text-center">
+                            <h5 class="card-title text-white">
+                                <i class="fas fa-check-circle" aria-hidden="true"></i> Properties for Sell
+                            </h5>
+                            <p class="card-text">{{ properties_sold }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+            <div class="row mt-3 justify-content-center">
+                <div class="col-md-6 d-flex justify-content-center">
+                    <div class="chart-container" style="position: relative; height: 350px; width: 100%; background: rgba(250, 250, 250, 0.8); box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); border-radius: 10px; padding: 15px;">
+                        <canvas id="monthlyPropertiesChart"></canvas>
+                    </div>
+                </div>
+                <div class="col-md-6 d-flex justify-content-center">
+                    <div class="chart-container" style="width: 100%; height: 350px;">
+                        <canvas id="propertyStatusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+    </div>
+</div>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+
+<!-- jQuery (if not already included) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Toastr JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+
+<script>
+    $(document).ready(function() {
+        // Show non-field errors if any
+        {% if form.non_field_errors %}
+            var errorMessage = "{{ form.non_field_errors|escapejs }}";
+            toastr.error(errorMessage, 'Error', { timeOut: 3000 });
+        {% endif %}
+
+        // Show success messages if any
+        {% if messages %}
+            {% for message in messages %}
+                toastr.success("{{ message|escapejs }}", 'Success', { timeOut: 3000 });
+            {% endfor %}
+        {% endif %}
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const ctx1 = document.getElementById('monthlyPropertiesChart').getContext('2d');
+        const gradientFill = ctx1.createLinearGradient(0, 0, 0, 300);
+        gradientFill.addColorStop(0, "rgba(118, 215, 196, 0.9)");
+        gradientFill.addColorStop(1, "rgba(118, 215, 196, 0.3)");
+    
+        const dailyPropertiesChart = new Chart(ctx1, {
+            type: 'bar',
+            data: {
+                labels: {{ days|safe }},  // Use the 'days' data from context
+                datasets: [{
+                    label: 'Properties Sold Per Day',  // Update label for daily data
+                    data: {{ sold_counts|safe }},
+                    backgroundColor: gradientFill,
+                    borderWidth: 1,
+                    barThickness: 50, // Control bar width
+                    hoverBorderWidth: 2
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            // Customize y-axis ticks
+                            stepSize: 1,  // Set the step size to 1
+                            callback: function(value) {
+                                return Number.isInteger(value) ? value : null;  // Display only whole numbers
+                            }
+                        },
+                        grid: {
+                            color: "rgba(200, 200, 200, 0.3)"
+                        },
+                    },
+                    x: {
+                        grid: {
+                            display: false // No grid on x-axis for a cleaner look
+                        }
+                    }
+                },
+                animation: {
+                    duration: 1000,
+                    easing: 'easeInOutBounce' // Adds a bounce effect
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            color: '#005555',
+                            font: {
+                                size: 14,
+                                weight: 'bold' // Make text bold
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+    
+    document.addEventListener("DOMContentLoaded", function() {
+        const ctx2 = document.getElementById('propertyStatusChart').getContext('2d');
+        const propertyStatusChart = new Chart(ctx2, {
+            type: 'doughnut', // Using doughnut for a more 3D effect
+            data: {
+                labels: ['For Rent', 'Sell'],
+                datasets: [{
+                    data: [{{ properties_for_rent }}, {{ properties_sold }}],
+                    backgroundColor: [
+                        'rgba(255, 206, 86, 0.9)',
+                        'rgba(255, 99, 132, 0.9)'
+                    ],
+                    hoverBackgroundColor: [
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(255, 99, 132, 1)'
+                    ],
+                    borderWidth: 2,
+                    hoverBorderWidth: 2,
+                    borderAlign: 'inner' // Inner shadow for a 3D effect
+                }]
+            },
+            options: {
+                responsive: true,
+                cutout: '40%', // Gives a "cutout" appearance for depth
+                animation: {
+                    animateScale: true,
+                    animateRotate: true,
+                    duration: 1500 // Smooth animation
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            color: 'rgba(0, 0, 0, 0.7)',
+                            font: {
+                                size: 13
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                return `${label}: ${value}`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+        
+</script>
+
+<style>
+
+    body {
+        {% comment %} background-image: url("{% static 'images/landlord.jpeg' %}");
+        background-size: cover;        /* Cover entire background */
+        background-position: center;   /* Center the image */
+        background-repeat: no-repeat;  /* Prevent image from repeating */
+        background-attachment: fixed;  /* Keep background fixed during scroll */ {% endcomment %}
+
+        background:#d1f2eb ;
+    }
+    .sidebar-header {
+        padding: 15px;
+        font-weight: bold;
+        font-size: 1.25rem;
+    }
+
+    .nav-link {
+        transition: background-color 0.3s;
+    }
+
+    .nav-link:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .logout-btn {
+        font-size: 1.2rem;
+        color: white;
+        background-color: transparent;
+        border: 2px solid white;
+        padding: 8px 6px;
+        border-radius: 4px;
+        margin-top: 20px;
+        transition: transform 0.3s ease, background-color 0.3s ease;
+        margin-left: 12px;
+    }
+    
+    .logout-btn:hover {
+        background-color: white;
+        border: 2px solid white;
+        color: #005555;
+        transform: scale(1.05); /* Optional: Add a slight scale for a more interactive effect */
+    }
+    
+    
+
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .sidebar {
+            padding: 0; /* Remove padding for smaller screens */
+        }
+
+        .nav-item {
+            margin: 5px 0; /* Add spacing between items */
+        }
+
+        .logout-btn {
+            margin-left: 0; /* Center align logout button */
+            display: block; /* Full width */
+            width: 100%; /* Make it full width on small screens */
+            text-align: center; /* Center text */
+        }
+    }
+    
+
+
+    .card {
+        transition: transform 0.3s ease, background-color 0.3s ease;
+    }
+    .card:hover {
+        background-color: #004444;
+        color: white;
+        transform: scale(1.05);
+    }
+    .card:hover .card-title, .card:hover .card-text {
+        color: white;
+    }
+    .card-text {
+        font-size: 1.2rem; /* Increase text size */
+    }
+
+    #propertyStatusChart {
+        height: 300px; /* Adjust this height as needed */
+    }
+    #propertyStatusChart {
+        max-width: 550px; /* Adjust this width as needed */
+        max-height: 300px; /* Adjust this height as needed */
+    }
+    .chart-container {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Shadow effect */
+        border-radius: 5px; /* Optional: adds rounded corners */
+        padding: 15px; /* Optional: adds some padding around the canvas */
+        background-color: white; /* Optional: background color */
+        transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out; /* Transition effect with ease-in-out */
+    }
+    
+    /* Hover effect */
+    .chart-container:hover {
+        transform: translateY(-5px); /* Moves the card slightly up */
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Intensifies the shadow on hover */
+    }
+     
+    .modal-content {
+        background-color: rgba(255, 255, 255, 0.8); /* Change to transparent white */
+    }
+    
+</style>
+
+{% endblock %}

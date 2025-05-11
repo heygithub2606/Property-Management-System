@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <a href="{% url 'landlord_dashboard' %}" class="btn btn-primary "><i class="fa fa-arrow-left"></i> Back </a>
+    <h1 class="text-center mb-4">Property List</h1>
+
+     <!-- Filter Form -->
+     <form method="GET" class="mb-4">
+        <div class="row align-items-end"> <!-- Added align-items-end to vertically align buttons -->
+            <div class="col-md-2">
+                <input type="text" name="title" class="form-control" placeholder="Property Title" value="{{ request.GET.title }}">
+            </div>
+            <div class="col-md-2">
+                <input type="number" name="min_price" class="form-control" placeholder="Min Price" value="{{ request.GET.min_price }}">
+            </div>
+            <div class="col-md-2">
+                <input type="number" name="max_price" class="form-control" placeholder="Max Price" value="{{ request.GET.max_price }}">
+            </div>
+            <div class="col-md-2">
+                <select name="status" class="form-control">
+                    <option value="" {% if request.GET.status == "" %}selected{% endif %}>All Statuses</option>
+                    <option value="Rent" {% if request.GET.status == "Rent" %}selected{% endif %}>Rent</option>
+                    <option value="Sell" {% if request.GET.status == "Sell" %}selected{% endif %}>Sell</option>
+                </select>
+            </div>
+            <div class="col-md-4 mt-3">
+                <button type="submit" class="btn btn-primary me-2">Filter</button>
+                <a href="{% url 'property-list' %}" class="btn btn-secondary">Reset Filters</a>
+            </div>
+        </div>
+    </form>
+    
+
+    <div class="card shadow-lg">
+        <div class="card-body">
+            <table class="table table-hover table-bordered">
+                <thead class="thead-dark">
+                    <tr class="text-center">
+                        <th scope="col" class="text-center">Image</th>
+                        <th scope="col">Title</th>
+                        <th scope="col">Price</th>
+                        <th scope="col">Status</th>
+                        <th scope="col" class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for property in properties %}
+                    <tr class="align-middle">
+                        <td class="text-center">
+                            {% if property.images.all %}
+                                <img src="{{ property.images.all.0.image.url }}" alt="{{ property.title }}" class="img-thumbnail" style="width: 100px; height: 100px; border-radius: 10px;">
+                            {% else %}
+                                <span class="text-muted">No Image</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">{{ property.title }}</td>
+                        <td class="text-center">${{ property.price|floatformat:2 }}</td>
+                        <td class="text-center">
+                            <span class="badge 
+                                {% if property.status == 'Sell' %}bg-danger
+                                {% elif property.status == 'Rent' %}bg-warning 
+                                {% endif %}">
+                                {{ property.status|title }}
+                            </span>
+                        </td>
+                        <td class="text-center align-middle">
+                            <a href="{% url 'property-detail' property.pk %}" data-bs-toggle="tooltip" title="View Property">
+                                <i class="fas fa-eye" style="font-size: 1.5rem; margin-right: 15px;"></i>
+                            </a>
+                            <a href="{% url 'property-edit' property.pk %}" data-bs-toggle="tooltip" title="Edit Property">
+                                <i class="fas fa-edit" style="font-size: 1.5rem; margin-right: 15px;"></i> 
+                            </a>
+                            <a href="{% url 'property-delete' property.pk %}" data-bs-toggle="tooltip" title="Delete Property">
+                                <i class="fas fa-trash text-danger" style="font-size: 1.5rem;"></i> 
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+
+            <!-- Pagination Controls -->
+            <nav aria-label="Property pagination" class="mt-4">
+                <ul class="pagination justify-content-center pagination-dark">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link text-dark" href="?page=1" aria-label="First">
+                                <span aria-hidden="true">&laquo;&laquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link text-dark" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    {% endif %}
+            
+                    <!-- Loop through page numbers -->
+                    {% for num in paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link bg-dark border-dark">{{ num }}</span>
+                            </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link text-dark" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+            
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link text-dark" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link text-dark" href="?page={{ paginator.num_pages }}" aria-label="Last">
+                                <span aria-hidden="true">&raquo;&raquo;</span>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+
+        </div>
+    </div>
+</div>
+
+<style>
+
+    body{
+        background:#d1f2eb ;
+    }
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+
+<!-- jQuery (if not already included) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Toastr JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+
+<script>
+    $(document).ready(function() {
+        // Show non-field errors if any
+        {% if form.non_field_errors %}
+            var errorMessage = "{{ form.non_field_errors|escapejs }}";
+            toastr.error(errorMessage, 'Error', { timeOut: 3000 });
+        {% endif %}
+
+        // Show success messages if any
+        {% if messages %}
+            {% for message in messages %}
+                toastr.success("{{ message|escapejs }}", 'Success', { timeOut: 3000 });
+            {% endfor %}
+        {% endif %}
+    });
+</script>         
+<script>
+    // Initialize Bootstrap tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+</script>
+
+{% endblock %}

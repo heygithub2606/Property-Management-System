@@ -1,0 +1,819 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+<div class="container" id="container">
+	<div class="form-container sign-up-container">
+        <form id="registrationForm" method="POST" action="{% url 'register' %}" >
+            {% csrf_token %}
+            <h1 class= 'my-3' style="color: #005555;">Create Account</h1>
+            
+            <div class="form-group col-md-12 mb-3">
+                <input type="text" name="username" id="signUp-userName" placeholder="Username" class="form-control" required>
+                <div id="username-error-message" class="invalid-feedback"></div>
+            </div>
+            
+            <div class="form-group col-md-12 mb-3">
+                <input type="email" name="email" id="signUp-email" placeholder="Email" class="form-control" required>
+                <div id="email-error-message" class="invalid-feedback"></div>
+            </div>
+            
+            <div class="form-group col-md-12 mb-3">
+                <input type="password" name="password1" id="signUp-password" placeholder="Password" class="form-control" required>
+                <div id="password-error-message" class="invalid-feedback"></div>
+            </div>
+            
+            <div class="form-group col-md-12 mb-3">
+                <input type="password" name="password2" id="signUp-confirmPassword" placeholder="Confirm Password" class="form-control" required>
+                <div id="confirm-password-error-message" class="invalid-feedback"></div>
+            </div>
+            
+            <div class="form-group col-md-12 mb-3">
+                <select name="role" class="form-control" id="id_role" required>
+                    <option value="" disabled selected>Select Role</option>
+                    <option value="landlord">Landlord</option>
+                    <option value="tenant">Tenant</option>
+                </select>
+                <div id="role-error-message" class="invalid-feedback"></div>
+            </div>
+    
+            <button type="submit" class="btn btn-primary mt-2">Sign Up</button>
+        </form>
+    </div>
+    
+    
+    
+	<div class="form-container sign-in-container">
+        <form id="loginForm" method="POST" action="{% url 'user_login' %}" novalidate>
+            {% csrf_token %}
+            <h1 class="mb-3" style="color: #005555;">Sign in</h1> 
+
+            
+            <div class="form-group col-md-12 my-3">
+                <input type="text" name="username" id="login-username" placeholder="Username" class="form-control" required />
+                <div id="login-username-error-message" class="invalid-feedback is-invalid"></div>
+            </div>
+    
+            <div class="form-group col-md-12 ">
+                <input type="password" name="password" id="login-password" placeholder="Password" class="form-control" required />
+                <div id="login-password-error-message" class="invalid-feedback"></div>
+            </div>
+    
+            <a href="{% url 'forgot_password' %}">Forgot your password?</a>
+            <button class="mt-2 btn btn-primary" type="submit">Sign In</button>
+           
+
+        </form>
+    </div>
+    
+    
+	<div class="overlay-container">
+        <div class="overlay">
+            <div class="overlay-panel overlay-right">
+                <h1 style = "color:white;">Hello, Friend!</h1>
+                <p>Enter your personal details and start journey with us</p>
+                <button class="ghost" id="signUp">Sign Up</button>
+            </div>
+			<div class="overlay-panel overlay-left">
+				<h1 style = "color:white;">Welcome Back!</h1>
+				<p>To keep connected with us please login with your personal info</p>
+				<button class="ghost" id="signIn">Sign In</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+{% comment %} <!-- Toastr CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+
+<!-- jQuery (if not already included) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Toastr JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script> {% endcomment %}
+
+
+<style>
+
+@import url('https://fonts.googleapis.com/css?family=Montserrat:400,800');
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	background: #f6f5f7;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column;
+	font-family: 'Montserrat', sans-serif;
+	height: 100vh;
+	margin: -20px 0 50px;
+}
+
+h1 {
+	font-weight: bold;
+	margin: 0;
+}
+
+h2 {
+	text-align: center;
+}
+
+p {
+	font-size: 14px;
+	font-weight: 100;
+	line-height: 20px;
+	letter-spacing: 0.5px;
+	margin: 20px 0 30px;
+}
+
+span {
+	font-size: 12px;
+}
+
+a {
+	color: #333;
+	font-size: 14px;
+	text-decoration: none;
+	margin: 15px 0;
+}
+
+button {
+	border-radius: 20px;
+	border: #005555;
+	background-color: #005555;
+	color: #FFFFFF;
+	font-size: 12px;
+	font-weight: bold;
+	padding: 12px 45px;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	transition: transform 80ms ease-in;
+}
+
+button:active {
+	transform: scale(0.95);
+}
+
+button:focus {
+	outline: none;
+}
+
+button.ghost {
+	background-color: white;
+	border-color: white;
+    color: #005555;
+}
+
+form {
+	background-color: #FFFFFF;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-direction: column;
+	padding: 0 50px;
+	height: 100%;
+	text-align: center;
+}
+
+
+
+.container {
+	background-color: #fff;
+	border-radius: 10px;
+  	box-shadow: 0 14px 28px rgba(0,0,0,0.25), 
+			0 10px 10px rgba(0,0,0,0.22);
+	position: relative;
+	overflow: hidden;
+    width: 60%; /* Adjust the percentage as needed */
+    max-width: 1200px; /* Set a max width for larger screens */
+    height: 90vh; /* Adjust the height to be a bit taller */
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.form-container {
+	position: absolute;
+	top: 0;
+	height: 100%;
+	transition: all 0.6s ease-in-out;
+}
+
+.sign-in-container {
+	left: 0;
+	width: 50%;
+	z-index: 2;
+}
+
+.container.right-panel-active .sign-in-container {
+	transform: translateX(100%);
+}
+
+.sign-up-container {
+	left: 0;
+	width: 50%;
+	opacity: 0;
+	z-index: 1;
+}
+
+.container.right-panel-active .sign-up-container {
+	transform: translateX(100%);
+	opacity: 1;
+	z-index: 5;
+	animation: show 0.6s;
+}
+
+@keyframes show {
+	0%, 49.99% {
+		opacity: 0;
+		z-index: 1;
+	}
+	
+	50%, 100% {
+		opacity: 1;
+		z-index: 5;
+	}
+}
+
+.overlay-container {
+	position: absolute;
+	top: 0;
+	left: 50%;
+	width: 50%;
+	height: 100%;
+	overflow: hidden;
+	transition: transform 0.6s ease-in-out;
+	z-index: 100;
+}
+
+.container.right-panel-active .overlay-container{
+	transform: translateX(-100%);
+}
+
+.overlay {
+	background: #005555;
+	background: -webkit-linear-gradient(to right, #005555, #005555);
+	background: linear-gradient(to right, #005555, #005555);
+	background-repeat: no-repeat;
+	background-size: cover;
+	background-position: 0 0;
+	color: white;
+	position: relative;
+	left: -100%;
+	height: 100%;
+	width: 200%;
+  	transform: translateX(0);
+	transition: transform 0.6s ease-in-out;
+}
+
+.container.right-panel-active .overlay {
+  	transform: translateX(50%);
+}
+
+.overlay-panel {
+	position: absolute;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-direction: column;
+	padding: 0 40px;
+	text-align: center;
+	top: 0;
+	height: 100%;
+	width: 50%;
+	transform: translateX(0);
+	transition: transform 0.6s ease-in-out;
+}
+
+.overlay-left {
+	transform: translateX(-20%);
+}
+
+.container.right-panel-active .overlay-left {
+	transform: translateX(0);
+}
+
+.overlay-right {
+	right: 0;
+	transform: translateX(0);
+}
+
+.container.right-panel-active .overlay-right {
+	transform: translateX(20%);
+}
+
+
+</style>
+
+<script>
+
+document.addEventListener('DOMContentLoaded', function () {
+    // Form validation logic
+    const form = document.getElementById('registrationForm');
+    const usernameField = document.getElementById('signUp-userName');
+    const emailField = document.getElementById('signUp-email');
+    const passwordField1 = document.getElementById('signUp-password');
+    const passwordField2 = document.getElementById('signUp-confirmPassword');
+    
+    function showValidation(field, isValid, message) {
+        if (isValid) {
+            field.classList.remove('is-invalid');
+            field.classList.add('is-valid');
+            field.setCustomValidity('');
+        } else {
+            field.classList.remove('is-valid');
+            field.classList.add('is-invalid');
+            field.setCustomValidity(message);
+        }
+    }
+
+    // Username validation
+    usernameField.addEventListener('input', function () {
+        const username = usernameField.value.trim(); // Trim leading/trailing spaces
+        const maxLength = 20;
+        let isValid = true;
+        let message = '';
+    
+        // Trim input to max length
+        if (username.length > maxLength) {
+            usernameField.value = username.slice(0, maxLength); // Stop further input after maxLength
+            isValid = false;
+            message = `Username cannot exceed ${maxLength} characters.`;
+        }
+        else if (/^\s/.test(username) || /\s$/.test(username)) {
+            isValid = false;
+            message = 'Username cannot start or end with a space.';
+        }
+    
+        // Disallow single-character usernames (like "a" or "1")
+        else if (username.length === 1) {
+            isValid = false;
+            message = 'Username cannot be a single character.';
+        }
+    
+        // Check if username length is valid (min 3 characters)
+        else if (username.length < 3) {
+            isValid = false;
+            message = 'Username must be at least 3 characters long.';
+        }
+    
+        // Disallow starting or ending with an underscore or period, and ensure no consecutive underscores or periods
+        else if (/^[_\.]|[_\.]$/.test(username) || /__|\.{2,}/.test(username)) {
+            isValid = false;
+            message = 'Username cannot start or end with an underscore or period, and only one underscore or period is allowed between words.';
+        }
+    
+        // Disallow multiple consecutive spaces or invalid characters
+        else if (/[_\.\s]{2,}/.test(username)) {
+            isValid = false;
+            message = 'Username cannot have consecutive underscores, periods, or spaces.';
+        }
+        else if (/^(?:[a-zA-Z]\s)+[a-zA-Z]$/.test(username)) {
+            isValid = false;
+            message = 'Usernames with single characters separated by spaces are not allowed.';
+        }
+    
+        // Only allow letters, numbers, underscores, or periods (with underscores or periods between words)
+        else if (!/^[a-zA-Z0-9]+([_\.][a-zA-Z0-9]+)*$/.test(username)) {
+            // This error checks invalid characters not allowed
+            isValid = false;
+            message = 'Username must only contain letters, numbers, and one underscore or period between words. No other special characters are allowed.';
+        }
+    
+        // Disallow usernames that are entirely numeric
+        else if (/^\d+$/.test(username)) {
+            isValid = false;
+            message = 'Username cannot be entirely numeric.';
+        }
+    
+        // NEW VALIDATION: Disallow consecutive identical characters (e.g., "aa", "11", etc.)
+        else if (/([a-zA-Z0-9])\1{2,}/.test(username)) {
+            isValid = false;
+            message = 'Username cannot contain consecutive identical characters.';
+        }
+    
+        // Display validation message dynamically
+        showValidation(usernameField, isValid, message);
+    
+        // Handle the error message display
+        const messageContainer = document.querySelector('#username-error-message'); // Error message element
+    
+        if (!isValid) {
+            if (!messageContainer) {
+                const errorDiv = document.createElement('div');
+                errorDiv.id = 'username-error-message';
+                errorDiv.className = 'invalid-feedback';  // Bootstrap class for error message
+                errorDiv.innerText = message;
+                usernameField.parentNode.appendChild(errorDiv);
+            } else {
+                messageContainer.innerText = message;
+            }
+        } else if (messageContainer) {
+            messageContainer.remove();  // Remove error message if input becomes valid
+        }
+    });
+    
+    
+
+    // Email validation
+    emailField.addEventListener('input', function () {
+        const email = emailField.value.trim(); // Trim leading/trailing spaces
+        let isValid = true;
+        let message = '';
+    
+        // Define regex for basic email format validation
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        
+        // Define max length for email
+        const maxLength = 30;
+    
+        // Check if email is empty
+        if (email.length === 0) {
+            isValid = false;
+            message = 'Email address is required.';
+        }
+        // Check if email length exceeds the maximum length
+        else if (email.length > maxLength) {
+            emailField.value = email.slice(0, maxLength); // Stop further input after maxLength
+            isValid = false;
+            message = `Email address cannot exceed ${maxLength} characters.`;
+        }
+        // Check for leading/trailing spaces
+        else if (/^\s/.test(email) || /\s$/.test(email)) {
+            isValid = false;
+            message = 'Email address cannot start or end with a space.';
+        }
+        // Check basic email format
+        else if (!emailRegex.test(email)) {
+            isValid = false;
+            message = 'Please enter a valid email address.';
+        }
+        // Ensure no invalid characters
+        else if (/[^a-zA-Z0-9._%+-@]/.test(email)) {
+            isValid = false;
+            message = 'Email address contains invalid characters.';
+        }
+        // NEW VALIDATION 1: Ensure email starts with a letter
+        else if (!/^[a-zA-Z]/.test(email)) {
+            isValid = false;
+            message = 'Email address must start with a letter.';
+        }
+        // NEW VALIDATION 2: Ensure ".com" does not appear more than once
+        else if (email.match(/\.com/g)?.length > 1) {
+            isValid = false;
+            message = 'Email address cannot contain ".com" more than once.';
+        }
+        // NEW VALIDATION 3: Ensure email does not start or end with special characters
+        else if (/^[^a-zA-Z0-9]|[^a-zA-Z0-9]$/.test(email)) {
+            isValid = false;
+            message = 'Email address cannot start or end with a special character.';
+        }
+        // NEW VALIDATION 4: Ensure no special characters between the email string (except '.' and '@')
+        else if (/[^a-zA-Z0-9._@]/.test(email)) {
+            isValid = false;
+            message = 'Email address can only contain letters, numbers, periods, and "@" symbols.';
+        }
+        // NEW VALIDATION 5: Ensure no consecutive special characters like '..' or '@.'
+        else if (/([._%+-]{2,})/.test(email)) {
+            isValid = false;
+            message = 'Email address cannot have consecutive special characters.';
+        }
+    
+        // Display validation message dynamically
+        showValidation(emailField, isValid, message);
+    
+        // Handle the error message display
+        const messageContainer = document.querySelector('#email-error-message'); 
+    
+        if (!isValid) {
+            if (!messageContainer) {
+                const errorDiv = document.createElement('div');
+                errorDiv.id = 'email-error-message';
+                errorDiv.className = 'invalid-feedback';  
+                errorDiv.innerText = message;
+                emailField.parentNode.appendChild(errorDiv);
+            } else {
+                messageContainer.innerText = message;
+            }
+        } else if (messageContainer) {
+            messageContainer.remove();  
+        }
+    });
+     
+    // Password validation (ensure password meets security requirements)
+    const maxLength = 15; 
+    passwordField1.addEventListener('input', function () {
+        let password = passwordField1.value.trim();
+        let isValid = true;
+        let message = '';
+
+        if (password.length > maxLength) {
+            password = password.slice(0, maxLength);
+            passwordField1.value = password;
+            isValid = false;
+            message = `Password cannot exceed ${maxLength} characters.`;
+        } else if (password.length < 6) {
+            isValid = false;
+            message = 'Password must be at least 8 characters long.';
+        } else if (!/[A-Z]/.test(password)) {
+            isValid = false;
+            message = 'Password must contain at least one uppercase letter.';
+        } else if (!/[a-z]/.test(password)) {
+            isValid = false;
+            message = 'Password must contain at least one lowercase letter.';
+        } else if (!/[0-9]/.test(password)) {
+            isValid = false;
+            message = 'Password must contain at least one digit.';
+        } else if (!/[!@#$%^&*]/.test(password)) {
+            isValid = false;
+            message = 'Password must contain at least one special character (!@#$%^&*).';
+        }
+
+        showValidation(passwordField1, isValid, message);
+        const messageContainer = document.querySelector('#password-error-message');
+    
+    if (!isValid) {
+        if (!messageContainer) {
+            const errorDiv = document.createElement('div');
+            errorDiv.id = 'password-error-message';
+            errorDiv.className = 'invalid-feedback';  // Bootstrap class for error message
+            errorDiv.innerText = message;
+            passwordField1.parentNode.appendChild(errorDiv);
+        } else {
+            messageContainer.innerText = message;
+        }
+    } else if (messageContainer) {
+        messageContainer.remove();
+    }
+
+    });
+
+    // Confirm password validation
+    
+    passwordField2.addEventListener('input', function () {
+        const password1 = passwordField1.value;
+        const password2 = passwordField2.value;
+        let isValid = true;
+        let message = '';
+
+        if (password1 !== password2) {
+            isValid = false;
+            message = 'Passwords do not match.';
+        }
+
+        showValidation(passwordField2, isValid, message);
+    });
+
+    // Prevent form submission if there are any validation issues
+    form.addEventListener('submit', function (event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    });
+});
+</script>
+
+<script>
+    (function () {
+      'use strict';
+      console.log("Validation script loaded");
+
+      // Function to validate a single input field
+      function validateField(field) {
+          if (field.checkValidity()) {
+              field.classList.remove('is-invalid');
+              field.classList.add('is-valid');
+              console.log(field.name + " is valid");
+          } else {
+              field.classList.remove('is-valid');
+              field.classList.add('is-invalid');
+              console.log(field.name + " is invalid");
+          }
+      }
+
+      window.addEventListener('load', function () {
+        var forms = document.getElementsByClassName('needs-validation');
+
+        Array.prototype.filter.call(forms, function (form) {
+          form.addEventListener('submit', function (event) {
+            if (form.checkValidity() === false) {
+              event.preventDefault();
+              event.stopPropagation();
+            }
+
+            Array.prototype.forEach.call(form.elements, function (field) {
+                if (field.tagName.toLowerCase() !== 'button') {
+                    validateField(field);
+                }
+            });
+
+            form.classList.add('was-validated');
+          }, false);
+        });
+
+        var inputs = document.querySelectorAll('.form-control');
+        inputs.forEach(function (input) {
+          input.addEventListener('blur', function (event) {
+            validateField(event.target);
+          });
+        });
+
+      }, false);
+    })();
+</script>    
+
+
+<script>
+    const signUpButton = document.getElementById('signUp');
+    const signInButton = document.getElementById('signIn');
+    const container = document.getElementById('container');
+   
+
+    
+    signUpButton.addEventListener('click', () => {
+        container.classList.add("right-panel-active");
+    });
+    
+    signInButton.addEventListener('click', () => {
+        container.classList.remove("right-panel-active");
+    });
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+    const loginForm = document.getElementById('loginForm');
+    const usernameField = document.getElementById('login-username');  // Correct ID for username field
+    const passwordField = document.getElementById('login-password');  // Correct ID for password field
+
+    // Username validation logic
+    usernameField.addEventListener('input', function () {
+        const username = usernameField.value.trim();
+        const maxLength = 20;
+        let isValid = true;
+        let message = '';
+
+        if (username.length > maxLength) {
+            usernameField.value = username.slice(0, maxLength);
+            isValid = false;
+            message = `Username cannot exceed ${maxLength} characters.`;
+        } else if (/^\s/.test(username) || /\s$/.test(username)) {
+            isValid = false;
+            message = 'Username cannot start or end with a space.';
+        } else if (username.length === 1) {
+            isValid = false;
+            message = 'Username cannot be a single character.';
+        } else if (username.length < 3) {
+            isValid = false;
+            message = 'Username must be at least 3 characters long.';
+        } else if (/^[_\.]|[_\.]$/.test(username) || /__|\.{2,}/.test(username)) {
+            isValid = false;
+            message = 'Username cannot start or end with an underscore or period, and only one underscore or period is allowed between words.';
+        } else if (!/^[a-zA-Z0-9]+([_\.][a-zA-Z0-9]+)*$/.test(username)) {
+            isValid = false;
+            message = 'Username must only contain letters, numbers, and one underscore or period between words.';
+        } else if (/^\d+$/.test(username)) {
+            isValid = false;
+            message = 'Username cannot be entirely numeric.';
+        }
+
+        const messageContainer = document.getElementById('login-username-error-message');  // Corrected reference
+
+        if (!isValid) {
+            messageContainer.innerText = message;
+            usernameField.classList.add('is-invalid');
+            usernameField.classList.remove('is-valid');
+        } else {
+            messageContainer.innerText = '';
+            usernameField.classList.remove('is-invalid');
+            usernameField.classList.add('is-valid');
+        }
+    });
+
+    // Password validation logic
+    const maxLength = 15; // Set the max length of password
+
+    passwordField.addEventListener('input', function () {
+        let password = passwordField.value.trim();
+        let isValid = true;
+        let message = '';
+
+        // Ensure the password doesn't exceed the max length
+        if (password.length > maxLength) {
+            password = password.slice(0, maxLength); // Truncate input to max length
+            passwordField.value = password; // Update the value in the field
+            isValid = false;
+            message = `Password cannot exceed ${maxLength} characters.`;
+        }
+        // Password validation rules
+        else if (password.length < 6) {
+            isValid = false;
+            message = 'Password must be at least 8 characters long.';
+        } else if (!/[A-Z]/.test(password)) {
+            isValid = false;
+            message = 'Password must contain at least one uppercase letter.';
+        } else if (!/[a-z]/.test(password)) {
+            isValid = false;
+            message = 'Password must contain at least one lowercase letter.';
+        } else if (!/[0-9]/.test(password)) {
+            isValid = false;
+            message = 'Password must contain at least one digit.';
+        } else if (!/[!@#\$%\^\&*\)\(+=._-]/.test(password)) {
+            isValid = false;
+            message = 'Password must contain at least one special character.';
+        }
+
+        const passwordMessageContainer = document.getElementById('login-password-error-message');  // Corrected reference
+
+        if (!isValid) {
+            passwordMessageContainer.innerText = message;
+            passwordField.classList.add('is-invalid');
+            passwordField.classList.remove('is-valid');
+        } else {
+            passwordMessageContainer.innerText = '';
+            passwordField.classList.remove('is-invalid');
+            passwordField.classList.add('is-valid');
+        }
+    });
+
+     // Function to clear error messages
+     function clearLoginError() {
+        loginErrorMessage.innerText = '';
+        loginErrorMessage.classList.add('d-none');
+    }
+
+    // Function to display login error
+    function showLoginError(message) {
+        loginErrorMessage.innerText = message;
+        loginErrorMessage.classList.remove('d-none');
+    }
+
+    // Prevent form submission if there are any validation issues
+    form.addEventListener('submit', function (event) {
+        // Prevent the default form submission
+        event.preventDefault();
+
+        // Clear any previous error messages
+        clearLoginError();
+
+        // Check if the form is valid
+        if (!form.checkValidity()) {
+            event.stopPropagation();
+            form.classList.add('was-validated');
+            return;
+        }
+
+        // Perform an AJAX request to the login endpoint
+        const formData = new FormData(form);
+        
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) { // Assuming your server returns { success: false, message: '...' }
+                showLoginError(data.message || 'Wrong credentials');
+            } else {
+                // Handle successful login (e.g., redirect or show success message)
+                window.location.href = '/success-url'; // Change to your success URL
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showLoginError('An error occurred. Please try again later.');
+        });
+    });
+
+});
+
+</script>
+<script>
+    $(document).ready(function() {
+        // Ensure messages are passed from the backend
+        {% for message in messages %}
+            {% if message.tags == 'success' %}
+                toastr.success("{{ message }}", 'Success', { timeOut: 3000 });
+            {% elif message.tags == 'error' %}
+                toastr.error("{{ message }}", 'Error', { timeOut: 3000 });
+            {% elif message.tags == 'warning' %}
+                toastr.warning("{{ message }}", 'Warning', { timeOut: 3000 });
+            {% elif message.tags == 'info' %}
+                toastr.info("{{ message }}", 'Info', { timeOut: 3000 });
+            {% endif %}
+        {% endfor %}
+    });
+</script>
+
+
+
+{% endblock %}

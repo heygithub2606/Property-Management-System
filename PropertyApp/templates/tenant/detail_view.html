@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block content %}
+<a href="javascript:void(0);" class="btn btn-primary mt-3" onclick="window.history.back();">Back</a>
+<div class="d-flex justify-content-end">
+  <a href="{% url 'contact_landlord' property.id %}" class="btn btn-outline-primary btn-sm mr-3 text-white" style="background-color: #005555; color-white; margin-right: 250px;">
+     <i class= "fa fa-message"></i> Message Landlord
+  </a>
+</div>
+
+<div class="container mt-5">
+  <div class="row">
+    <div class="col-md-8">
+      <!-- Property Image Carousel -->
+      <div id="propertyCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
+        <div class="carousel-inner">
+            {% if property_images %}
+                {% for image in property_images %}
+                    <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                        <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ property.title }}" style="height: 450px;">
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#propertyCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#propertyCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+      </div>
+    
+    <!-- Add this button inside the card body in the property details template -->
+   
+    <div class="col-md-4">
+
+      
+      <!-- Property Details -->
+      <div class="card shadow-lg p-3 mb-5 bg-body rounded">
+        
+        <div class="card-body">
+          <h3 class="card-title">{{ property.title }}</h3>
+          
+          <p class="card-text">
+            <span class="badge {% if property.status == 'available' %}bg-success{% else %}bg-secondary{% endif %}">
+              {{ property.status|capfirst }}
+            </span>
+          </p>
+          <p class="card-text" style="font-size: 1.1rem;">
+            <strong><i class="fas fa-user text-primary" style="font-size: 1.5rem;"></i> Owner name: </strong>{{ property.created_by.username }}!
+        </p>
+        <p class="card-text" style="font-size: 1.1rem;">
+            <strong><i class="fa fa-money-bill-alt text-success" style="font-size: 1.5rem;"></i> Price:</strong> ${{ property.price }}
+        </p>
+        <p class="card-text" style="font-size: 1.1rem;">
+            <strong><i class="fas fa-city text-info" style="font-size: 1.5rem;"></i> City:</strong> {{ property.city }}
+        </p>
+        <p class="card-text" style="font-size: 1.1rem;">
+            <strong><i class="fas fa-home text-secondary" style="font-size: 1.5rem;"></i> Type:</strong> {{ property.property_type }}
+        </p>
+        <p class="card-text" style="font-size: 1.1rem;">
+            <strong><i class="fa fa-envelope text-danger" style="font-size: 1.5rem;"></i> E-mail:</strong> {{ property.landlord_email }}
+        </p>
+        <p class="card-text" style="font-size: 1.1rem;">
+            <strong><i class="fa fa-phone text-warning" style="font-size: 1.5rem;"></i> Phone no:</strong> {{ property.phone_no }}
+        </p>
+          
+          <hr>
+
+          <!-- Contact Section -->
+         
+          <div class="col-md-12">
+            
+                <div class="card-body">
+                    <h4 class="card-title">Property Description</h4>
+                    <p class="card-text">{{ property.description }}</p>
+                </div>
+            
+        </div>
+        
+       
+
+     
+          
+        </div>
+      </div>
+    </div>
+    <div id="map" style="height: 400px; width: 100%; margin-top: 20px;"></div>
+  </div>
+
+ 
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Initialize the map and set its view to the initial coordinates
+        var map = L.map('map').setView([40.7128, -74.0060], 13); // Initial coordinates (latitude, longitude)
+
+        // Add a tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Function to add a marker to the map
+        function addMarker(lat, lng, title) {
+            L.marker([lat, lng]).addTo(map)
+                .bindPopup(title)  // Popup with property title
+                .openPopup();
+        }
+
+        // Example of adding a marker dynamically from your property data
+        addMarker({{ property.location_latitude }}, {{ property.location_longitude }}, "{{ property.title }}");
+    });
+</script>
+<!-- Bootstrap JS (ensure these are included if not already present in your base.html) -->
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/5.1.1/js/bootstrap.min.js"></script>
+
+{% endblock %}

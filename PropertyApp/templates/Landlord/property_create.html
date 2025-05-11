@@ -1,0 +1,196 @@
+    {% extends "base.html" %}
+
+    {% block content %}
+    <a href="javascript:void(0);" class="btn btn-primary btn-sm" onclick="window.history.back();" style="margin-left: 5%; margin-top: 50px;">
+    <i class="fas fa-arrow-left"></i> Back
+    </a>    
+    <div class="container ">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow-lg">
+                    <div class="card-body">
+                        <h2 class="text-center mb-4">Create Property</h2>
+                        <form method="POST" action="{% url 'property-create' %}" enctype="multipart/form-data" id="propertyForm">
+                            {% csrf_token %}
+                            
+                            <!-- Title Field -->
+                            <div class="form-group">
+                                <label for="title">Title:</label>
+                                <input type="text" name="title" class="form-control" id="title" required>
+                                <div class="invalid-feedback" id="title-error-message">Title must be under 25 characters.</div>
+                            </div>
+
+                            <!-- Description Field -->
+                            <div class="form-group">
+                                <label for="description">Description:</label>
+                                <textarea name="description" class="form-control" id="description" required></textarea>
+                            </div>
+
+                            <!-- Price Field -->
+                            <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div class="form-group">
+                                <label for="price">Price:</label>
+                                <input type="number" name="price" class="form-control" id="price" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="phone_no">Phone Number:</label>
+                                <input type="text" name="phone_no" class="form-control" id="phone_no" required>
+                                <div class="invalid-feedback" id="phone-error-message">Phone number must be exactly 10 digits.</div>
+                            </div>
+
+                        </div>
+
+                            <!-- City Field -->
+                            <div class="form-group">
+                                <label for="city">City:</label>
+                                <select name="city" class="form-control" id="city" required>
+                                    {% for city in cities %}
+                                        <option value="{{ city }}">{{ city }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+
+                            <!-- Property Type and Status Fields -->
+                            <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                <div class="form-group">
+                                    <label for="property_type">Property Type:</label>
+                                    <select name="property_type" class="form-control" id="property_type" required>
+                                        <option value="apartment">Apartment</option>
+                                        <option value="house">House</option>
+                                        <option value="office">Office</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="status">Status:</label>
+                                    <select name="status" class="form-control" id="status" required>
+                                        <option value="Sell">Sell</option>
+                                        <option value="Rent">Rent</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            
+                            <!-- E-mail Field -->
+                            <div class="form-group">
+                                <label for="landlord_email">E-mail:</label>
+                                <input type="email" name="landlord_email" class="form-control" id="landlord_email" required>
+                                <div class="invalid-feedback" id="email-error-message"></div>
+                            </div>
+
+                            <!-- Image Upload -->
+                            <div class="form-group">
+                                <label for="images">Images:</label>
+                                <input type="file" name="images" class="form-control" id="images" multiple required>
+                                <small class="form-text text-muted">Upload at least one image. You can upload multiple images.</small>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-block mt-4">Create Property</button>
+                        </form>
+
+                        <!-- Success/Error Messages -->
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }} mt-3">{{ message }}</div>
+                            {% endfor %}
+                        {% endif %}
+
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger mt-3">
+                                {% for error in form.non_field_errors %}
+                                    <div>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Validation -->
+    <style>
+body{
+    background:#d1f2eb ;
+}
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const propertyForm = document.getElementById('propertyForm');
+            
+            // Function to validate title
+            function validateTitle() {
+                const titleField = document.getElementById('title');
+                const titleError = document.getElementById('title-error-message');
+                const title = titleField.value.trim();
+                titleError.style.display = 'none';
+                titleField.classList.remove('is-invalid', 'is-valid');
+    
+                // Limit the title to 35 characters
+                if (title.length > 35) {
+                    titleField.value = title.slice(0, 35); // Trim the title to the first 35 characters
+                    titleError.textContent = "Title must be under 35 characters.";
+                    titleField.classList.add('is-invalid');
+                    titleError.style.display = 'block';
+                } else {
+                    titleField.classList.add('is-valid');
+                }
+            }
+    
+            // Function to validate phone number
+            function validatePhone() {
+                const phoneField = document.getElementById('phone_no');
+                const phoneError = document.getElementById('phone-error-message');
+                const phone = phoneField.value.trim();
+                phoneError.style.display = 'none';
+                phoneField.classList.remove('is-invalid', 'is-valid');
+    
+                if (!/^\d{10}$/.test(phone)) {
+                    phoneField.classList.add('is-invalid');
+                    phoneError.style.display = 'block';
+                } else {
+                    phoneField.classList.add('is-valid');
+                }
+            }
+    
+            // Function to validate email
+            function validateEmail() {
+                const emailField = document.getElementById('landlord_email');
+                const emailError = document.getElementById('email-error-message');
+                const email = emailField.value.trim();
+                emailError.style.display = 'none';
+                emailField.classList.remove('is-invalid', 'is-valid');
+    
+                const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    
+                if (!emailPattern.test(email) || (email.match(/\.com/g) || []).length > 1) {
+                    emailField.classList.add('is-invalid');
+                    emailError.textContent = "Please enter a valid email address. Ensure it has no more than one '.com'.";
+                    emailError.style.display = 'block';
+                } else {
+                    emailField.classList.add('is-valid');
+                }
+            }
+    
+            // Add event listeners for real-time validation
+            document.getElementById('title').addEventListener('input', validateTitle);
+            document.getElementById('phone_no').addEventListener('input', validatePhone);
+            document.getElementById('landlord_email').addEventListener('input', validateEmail);
+    
+            // Form submission validation
+            propertyForm.onsubmit = function(e) {
+                validateTitle();
+                validatePhone();
+                validateEmail();
+    
+                // Check if any field is invalid before submitting
+                const invalidFields = propertyForm.querySelectorAll('.is-invalid');
+                if (invalidFields.length > 0) {
+                    e.preventDefault(); // Prevent submission if there are invalid fields
+                }
+            };
+        });
+    </script>
+    
+    
+    {% endblock %}

@@ -1,0 +1,97 @@
+<!-- Sidebar -->
+<nav class="col-md-3 col-lg-2 sidebar text-white" style="background-color: #005555;">
+    <div class="sidebar-sticky">
+        <h5 class="sidebar-header text-white">Welcome, {{ user.username }}!</h5>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link active text-white" href="{% url 'profile' %}" style="font-size: 1.1rem;">
+                    <i class="fas fa-user"></i> Profile
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white" href="{% url 'property-create' %}" style="font-size: 1.1rem;">
+                    <i class="fas fa-plus"></i> Create Property
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link text-white" href="{% url 'property-list' %}" style="font-size: 1.1rem;">
+                    <i class="fas fa-home"></i> Manage Properties
+                </a>
+            </li>
+            <li class="mb-3 mt-4">
+                <a class="logout-btn btn-sm" href="#" data-toggle="modal" data-target="#logoutModal">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+
+
+<style>
+
+    body {
+        {% comment %} background-image: url("{% static 'images/landlord.jpeg' %}");
+        background-size: cover;        /* Cover entire background */
+        background-position: center;   /* Center the image */
+        background-repeat: no-repeat;  /* Prevent image from repeating */
+        background-attachment: fixed;  /* Keep background fixed during scroll */ {% endcomment %}
+
+        background:#d1f2eb ;
+    }
+    .sidebar-header {
+        padding: 15px;
+        font-weight: bold;
+        font-size: 1.25rem;
+    }
+
+    .nav-link {
+        transition: background-color 0.3s;
+    }
+
+    .nav-link:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .logout-btn {
+        font-size: 1.2rem;
+        color: white;
+        background-color: transparent;
+        border: 2px solid white;
+        padding: 8px 6px;
+        border-radius: 4px;
+        margin-top: 20px;
+        transition: transform 0.3s ease, background-color 0.3s ease;
+        margin-left: 12px;
+    }
+    
+    .logout-btn:hover {
+        background-color: white;
+        border: 2px solid white;
+        color: #005555;
+        transform: scale(1.05); /* Optional: Add a slight scale for a more interactive effect */
+    }
+    
+    
+
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .sidebar {
+            padding: 0; /* Remove padding for smaller screens */
+        }
+
+        .nav-item {
+            margin: 5px 0; /* Add spacing between items */
+        }
+
+        .logout-btn {
+            margin-left: 0; /* Center align logout button */
+            display: block; /* Full width */
+            width: 100%; /* Make it full width on small screens */
+            text-align: center; /* Center text */
+        }
+    }
+    
+</style>

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 my-5">
+            <div class="card shadow-lg">
+                <div class="card-body text-center">
+                    <h2 class="text-success">Success!</h2>
+                    <p class="mt-4">Your property has been created successfully.</p>
+                    <a href="{% url 'landlord_dashboard' %}" class="btn btn-primary mt-4">Back to Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

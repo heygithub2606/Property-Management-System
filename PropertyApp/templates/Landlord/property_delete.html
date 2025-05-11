@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg">
+                <div class="card-body text-center">
+                    <h2 class="mb-4">Confirm Deletion</h2>
+                    <p>Are you sure you want to delete the property: <strong>{{ property.title }}</strong>?</p>
+                    
+                    <!-- Trigger modal -->
+                    <button id="confirmDelete" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                        Delete
+                    </button>
+                    <a href="{% url 'property-list' %}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Handle delete confirmation
+    document.getElementById('confirmDelete').onclick = function() {
+        fetch('{% url "property-delete" property.pk %}', {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => {
+            if (response.ok) {
+                // Redirect to property list after deletion
+                window.location.href = "{% url 'property-list' %}";
+            } else {
+                alert('Failed to delete the property. Please try again.');
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    };
+</script>
+{% endblock %}
+

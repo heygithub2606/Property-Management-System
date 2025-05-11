@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between mt-3" style="margin-top: 10%;">
+  <!-- Back Button with margin and icon -->
+  <a href="javascript:void(0);" class="btn btn-primary ms-3" onclick="window.history.back();">
+    <i class="fa fa-arrow-left"></i> Back
+  </a>
+
+  <!-- Message Landlord Button aligned to the right -->
+  <a href="{% url 'contact_landlord' property.pk %}" class="btn btn-outline-primary btn-sm text-white" style="background-color: #005555; margin-right: 250px;">
+    <i class="fa fa-message"></i> Message Landlord
+  </a>
+</div>
+
+
+
+<div class="container mt-5">
+  <!-- Property Image Carousel -->
+  <div id="propertyCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
+    <div class="carousel-inner">
+        {% for image in images %}
+            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                <img src="{{ image.image.url }}" class="d-block w-100" alt="{{ property.title }}" style="height: 450px;">
+            </div>
+        {% empty %}
+            <div class="carousel-item active">
+                <img src="default_image_url_here" class="d-block w-100" alt="Default Image" style="height: 450px;">
+            </div>
+        {% endfor %}
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#propertyCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#propertyCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+    </button>
+  </div>
+</div>
+
+  <!-- Row for Property Details Card and Map -->
+  <div class="row mt-4 justify-content-center">  <!-- Added 'justify-content-center' to center cards -->
+    <!-- Left side: Property Details -->
+    <div class="col-md-5 ps-4">  <!-- Increased left padding and reduced width -->
+        <div class="card shadow-lg p-3 mb-5 bg-body rounded">
+            <div class="card-body">
+                <h4 class="card-title text-center">Details</h4>
+                <h3 class="card-title">{{ property.title }}</h3>
+                <p class="card-text">
+                    <span class="badge {% if property.status == 'available' %}bg-success{% else %}bg-secondary{% endif %}">
+                        {{ property.status|capfirst }}
+                    </span>
+                </p>
+                <p class="card-text custom-text" style="font-size: 1.1rem;">
+                    <strong><i class="fas fa-user text-primary" style="font-size: 1.1rem;"></i> Owner name: </strong>{{ property.created_by.username }}!
+                </p>
+                <p class="card-text" style="font-size: 1.1rem;">
+                    <strong><i class="fa fa-money-bill-alt text-success" style="font-size: 1.1rem;"></i> Price:</strong> ${{ property.price }}
+                </p>
+                <p class="card-text" style="font-size: 1.1rem;">
+                    <strong><i class="fas fa-home text-secondary" style="font-size: 1.1rem;"></i> Status:</strong> {{ property.status }}
+                </p>
+
+
+                <p class="card-text" style="font-size: 1.1rem;">
+                    <strong><i class="fas fa-city text-info" style="font-size: 1.1rem;"></i> City:</strong> {{ property.city }}
+                </p>
+                <p class="card-text" style="font-size: 1.1rem;">
+                    <strong><i class="fas fa-home text-secondary" style="font-size: 1.1rem;"></i> Type:</strong> {{ property.property_type }}
+                </p>
+                <p class="card-text" style="font-size: 1.1rem;">
+                    <strong><i class="fa fa-envelope text-danger" style="font-size: 1.1rem;"></i> E-mail:</strong> {{ property.landlord_email }}
+                </p>
+                <p class="card-text" style="font-size: 1.1rem;">
+                    <strong><i class="fa fa-phone text-warning" style="font-size: 1.1rem;"></i> Phone no:</strong> {{ property.phone_no }}
+                </p>
+
+                <hr>
+                <h4 class="card-title">Property Description</h4>
+                <p class="card-text">{{ property.description }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right side: Map -->
+    <div class="col-md-5 pe-4">  <!-- Increased right padding and reduced width -->
+        <div id="map" style="height: 550px; width: 100%; border: 1px solid #ccc; border-radius: 5px;"></div>
+    </div>
+</div>
+
+
+
+
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<!-- Leaflet Control Geocoder JS -->
+<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Initialize the map and set its view to a default location
+        var map = L.map('map').setView([20.5937, 78.9629], 5); // Center of India
+
+        // Add a tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Initialize the geocoder
+        var geocoder = L.Control.Geocoder.nominatim();
+        var currentMarker = null; // Store the current marker
+        var currentCircle = null; // Store the current circle
+
+        // Property data from the template
+        var cityName = "{{ property.city|escapejs }}"; // City name with escaping
+        var propertyName = "{{ property.title|escapejs }}"; // Property title or any other identifying text
+
+        if (cityName) {
+            // Use the geocoder to find the city coordinates
+            geocoder.geocode(cityName, function (results) {
+                if (results.length > 0) {
+                    var lat = results[0].center.lat;
+                    var lng = results[0].center.lng;
+
+                    // Clear any existing marker and circle
+                    if (currentMarker) {
+                        map.removeLayer(currentMarker);
+                    }
+                    if (currentCircle) {
+                        map.removeLayer(currentCircle);
+                    }
+
+                    // Add new marker at the city's location with property name in the popup
+                    currentMarker = L.marker([lat, lng]).addTo(map)
+                        .bindPopup("<b>" + propertyName + "</b><br>" + cityName) // Popup with property name and city
+                        .openPopup();
+
+                    // Add a small red circle around the property location (adjust radius as needed)
+                    currentCircle = L.circle([lat, lng], {
+                        color: 'red',
+                        fillColor: '#f03',
+                        fillOpacity: 0.5,
+                        radius: 50 // Adjust radius for a smaller circle (100 meters in this example)
+                    }).addTo(map);
+
+                    // Set the map view to focus on the marker's location
+                    map.setView([lat, lng], 12);
+                } else {
+                    alert("City not found. Please check the city name.");
+                }
+            });
+        } else {
+            console.error("City name is empty.");
+        }
+    });
+</script>
+
+
+{% endblock %}
